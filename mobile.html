@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#ff4f00" />
+<title>动作库 · 1324</title>
+<style>
+  /* ── Tokens ──────────────────────────────────────── */
+  :root {
+    --accent: #ff4f00;
+    --accent-soft: rgba(255,79,0,0.08);
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #ececec;
+    --text: #111;
+    --text-2: #666;
+    --text-3: #999;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111; --border:#222; --surface:#1a1a1a; --text:#f5f5f5; --text-2:#bbb; --text-3:#777; --accent-soft:rgba(255,79,0,0.18); }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ── Top bar ─────────────────────────────────────── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-bottom: 12px;
+  }
+  h1 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+  h1 .badge { font-size: 12px; font-weight: 500; color: var(--text-2); margin-left: 6px; }
+  .search-box { position: relative; }
+  .search-box input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: '🔍';
+    position: absolute; left: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px; opacity: 0.6;
+  }
+
+  /* ── Filter chips ────────────────────────────────── */
+  .filters {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display:none; }
+  .filter-group {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 12px;
+  }
+  .filter-group .label {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+  }
+  .chip {
+    display: inline-block;
+    padding: 5px 11px;
+    margin-right: 6px;
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+  }
+  .chip.active { background: var(--accent); color: #fff; }
+  .chip:not(.active):hover { background: var(--accent-soft); }
+
+  /* ── Result meta ─────────────────────────────────── */
+  .meta {
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text-3);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Card list ───────────────────────────────────── */
+  .list {
+    padding: 0 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 380px) {
+    .list { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: transform 0.1s;
+  }
+  .card:active { transform: scale(0.97); }
+  .card .thumb {
+    width: 100%; aspect-ratio: 1/1;
+    background: #f0f0f0 center/cover no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--text-3);
+  }
+  @media (prefers-color-scheme: dark) {
+    .card .thumb { background:#222; }
+  }
+  .card .body { padding: 8px 10px 10px; }
+  .card .name {
+    font-size: 13px; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    min-height: 36px;
+  }
+  .card .cat {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  /* ── Pagination ──────────────────────────────────── */
+  .pager {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; padding: 16px;
+  }
+  .pager button {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .pager button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .pager .page-info { font-size: 13px; color: var(--text-2); min-width: 90px; text-align: center; }
+
+  /* ── Detail sheet ────────────────────────────────── */
+  .sheet-mask {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .sheet-mask.open { display: flex; }
+  .sheet {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: slideUp 0.25s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet header {
+    position: sticky; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+  }
+  .sheet header h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .sheet .close {
+    background: none; border: none;
+    font-size: 24px; cursor: pointer;
+    color: var(--text-2); padding: 0; line-height: 1;
+  }
+  .sheet .media {
+    background: #f0f0f0;
+    text-align: center;
+    padding: 16px;
+    min-height: 120px;
+  }
+  .sheet .media img, .sheet .media .gif-placeholder {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .sheet .media { background:#222; }
+  }
+  .sheet .meta-row {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 4px;
+  }
+  .sheet .tag {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 9px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  .sheet .instructions {
+    padding: 14px 16px 20px;
+    white-space: pre-wrap;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .sheet .muscles {
+    padding: 0 16px 16px;
+    font-size: 13px; color: var(--text-2);
+  }
+  .sheet .muscles strong { color: var(--text); }
+
+  /* ── Loading / empty ─────────────────────────────── */
+  .status {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 14px;
+  }
+  .status .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Hint banner (shown when served from disk) ─── */
+  .hint {
+    margin: 8px 16px 0;
+    padding: 8px 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>动作库<span class="badge" id="totalBadge">加载中…</span></h1>
+  <div class="search-box">
+    <input id="searchInput" type="search" placeholder="搜索动作名 / 部位 / 器械 / 目标肌群…" inputmode="search" />
+  </div>
+</header>
+
+<div id="hint" class="hint"></div>
+
+<div class="filters" id="filters">
+  <span class="status">筛选加载中…</span>
+</div>
+
+<div class="meta">
+  <span id="resultMeta">—</span>
+  <span>每页 20</span>
+</div>
+
+<div id="list" class="list"></div>
+<div id="empty" class="status" style="display:none">没有匹配的动作</div>
+
+<div class="pager" id="pager" style="display:none">
+  <button id="prevBtn">‹ 上一页</button>
+  <span class="page-info" id="pageInfo">1 / 1</span>
+  <button id="nextBtn">下一页 ›</button>
+</div>
+
+<div class="sheet-mask" id="sheetMask">
+  <div class="sheet" id="sheet">
+    <header>
+      <h2 id="sheetTitle">动作详情</h2>
+      <button class="close" id="sheetClose">×</button>
+    </header>
+    <div class="media" id="sheetMedia"></div>
+    <div class="meta-row" id="sheetTags"></div>
+    <div class="muscles" id="sheetMuscles"></div>
+    <div class="instructions" id="sheetInstr">—</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ── State ─────────────────────────────────────────── */
+const state = {
+  index: [],           // lightweight list records (no instructions)
+  filtered: [],
+  page: 1,
+  pageSize: 20,
+  search: '',
+  filters: { category: '', body_part: '', equipment: '' },
+  detailCache: new Map(),  // id -> full record
+};
+
+/* ── Helpers ───────────────────────────────────────── */
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
+  { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+));
+
+function uniqueSorted(arr) {
+  return Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function loadDetail(id) {
+  if (state.detailCache.has(id)) return state.detailCache.get(id);
+  const rec = await fetchJSON('./data/details/' + id + '.json');
+  state.detailCache.set(id, rec);
+  return rec;
+}
+
+/* ── Bootstrap ─────────────────────────────────────── */
+async function load() {
+  try {
+    state.index = await fetchJSON('./data/exercises-index.json');
+  } catch (err) {
+    $('list').innerHTML = '';
+    $('empty').textContent = '加载数据失败: ' + err.message + '（请用本地 HTTP 服务器打开，例如 node serve-mobile.js）';
+    $('empty').style.display = 'block';
+    $('totalBadge').textContent = '';
+    return;
+  }
+
+  $('totalBadge').textContent = '共 ' + state.index.length + ' 条';
+  buildFilters();
+  applyFilters();
+}
+
+/* ── Filters ───────────────────────────────────────── */
+function buildFilters() {
+  const cats = uniqueSorted(state.index.map((e) => e.category));
+  const parts = uniqueSorted(state.index.map((e) => e.body_part));
+  const equips = uniqueSorted(state.index.map((e) => e.equipment));
+
+  const html = [];
+  for (const [label, key, values] of [
+    ['部位', 'category', cats],
+    ['身体', 'body_part', parts],
+    ['器械', 'equipment', equips],
+  ]) {
+    html.push(`<div class="filter-group"><span class="label">${label}</span>`);
+    html.push(`<span class="chip active" data-key="${key}" data-val="">全部</span>`);
+    for (const v of values) {
+      html.push(`<span class="chip" data-key="${key}" data-val="${escapeHtml(v)}">${escapeHtml(v)}</span>`);
+    }
+    html.push('</div>');
+  }
+  $('filters').innerHTML = html.join('');
+
+  $('filters').addEventListener('click', (ev) => {
+    const chip = ev.target.closest('.chip');
+    if (!chip) return;
+    const key = chip.dataset.key;
+    chip.parentElement.querySelectorAll('.chip').forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    state.filters[key] = chip.dataset.val || '';
+    state.page = 1;
+    applyFilters();
+  });
+}
+
+/* ── Apply filters + search ───────────────────────── */
+function applyFilters() {
+  const q = state.search.trim().toLowerCase();
+  state.filtered = state.index.filter((ex) => {
+    if (state.filters.category && ex.category !== state.filters.category) return false;
+    if (state.filters.body_part && ex.body_part !== state.filters.body_part) return false;
+    if (state.filters.equipment && ex.equipment !== state.filters.equipment) return false;
+    if (!q) return true;
+    const hay = [
+      ex.name, ex.body_part, ex.category, ex.equipment,
+      ex.muscle_group, ex.target,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  render();
+}
+
+/* ── Render ────────────────────────────────────────── */
+function render() {
+  const total = state.filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+  const start = (state.page - 1) * state.pageSize;
+  const slice = state.filtered.slice(start, start + state.pageSize);
+
+  $('resultMeta').textContent = total === 0
+    ? '没有匹配'
+    : `${start + 1}–${Math.min(start + state.pageSize, total)} / 共 ${total} 条`;
+
+  const html = slice.map((ex) => {
+    const img = ex.image ? `<div class="thumb" style="background-image:url('${escapeHtml(ex.image)}')"></div>`
+                         : `<div class="thumb">🏋</div>`;
+    return `
+      <div class="card" data-id="${escapeHtml(ex.id)}">
+        ${img}
+        <div class="body">
+          <div class="name">${escapeHtml(ex.name)}</div>
+          <div class="cat">${escapeHtml(ex.category || '')}${ex.equipment ? ' · ' + escapeHtml(ex.equipment) : ''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $('list').innerHTML = html;
+  $('empty').style.display = total === 0 ? 'block' : 'none';
+
+  if (total > state.pageSize) {
+    $('pager').style.display = 'flex';
+    $('pageInfo').textContent = `${state.page} / ${totalPages}`;
+    $('prevBtn').disabled = state.page <= 1;
+    $('nextBtn').disabled = state.page >= totalPages;
+  } else {
+    $('pager').style.display = 'none';
+  }
+}
+
+/* ── Detail sheet ─────────────────────────────────── */
+$('list').addEventListener('click', async (ev) => {
+  const card = ev.target.closest('.card');
+  if (!card) return;
+  const id = card.dataset.id;
+  // Open sheet immediately with the index record so user gets instant feedback
+  const idx = state.index.find((e) => e.id === id);
+  if (!idx) return;
+  openSheet(idx);
+
+  try {
+    const full = await loadDetail(id);
+    // Only update if the sheet is still showing this id
+    if ($('sheetTitle').textContent === idx.name) {
+      fillSheetDetail(full);
+    }
+  } catch (err) {
+    $('sheetInstr').textContent = '加载详情失败: ' + err.message;
+  }
+});
+
+function openSheet(ex) {
+  $('sheetTitle').textContent = ex.name || '';
+  $('sheetMedia').innerHTML = ex.image
+    ? `<img src="${escapeHtml(ex.image)}" alt="缩略图" loading="lazy" />`
+    : '<div class="gif-placeholder">🏋</div>';
+
+  const tags = [ex.category, ex.body_part, ex.equipment].filter(Boolean);
+  $('sheetTags').innerHTML = tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+
+  const muscles = [];
+  if (ex.muscle_group) muscles.push(`<strong>主肌群:</strong> ${escapeHtml(ex.muscle_group)}`);
+  if (ex.target)      muscles.push(`<strong>目标:</strong> ${escapeHtml(ex.target)}`);
+  if (Array.isArray(ex.secondary_muscles) && ex.secondary_muscles.length) {
+    muscles.push(`<strong>协同:</strong> ${ex.secondary_muscles.map(escapeHtml).join('、')}`);
+  }
+  $('sheetMuscles').innerHTML = muscles.join('<br/>');
+
+  $('sheetInstr').textContent = '加载中…';
+  $('sheetMask').classList.add('open');
+}
+
+function fillSheetDetail(ex) {
+  // Upgrade media to include GIF when available
+  const media = [];
+  if (ex.gif_url) media.push(`<img src="${escapeHtml(ex.gif_url)}" alt="动画" loading="lazy" />`);
+  if (ex.image) media.push(`<img src="${escapeHtml(ex.image)}" alt="缩略图" loading="lazy" style="margin-top:10px; max-height:180px;" />`);
+  if (media.length === 0) media.push('<div class="gif-placeholder">🏋</div>');
+  $('sheetMedia').innerHTML = media.join('');
+
+  const zh = (ex.instructions && ex.instructions.zh) || (ex.instructions && ex.instructions.en) || '暂无说明';
+  $('sheetInstr').textContent = zh;
+}
+
+$('sheetClose').addEventListener('click', () => $('sheetMask').classList.remove('open'));
+$('sheetMask').addEventListener('click', (ev) => {
+  if (ev.target === $('sheetMask')) $('sheetMask').classList.remove('open');
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') $('sheetMask').classList.remove('open');
+});
+
+/* ── Pager ─────────────────────────────────────────── */
+$('prevBtn').addEventListener('click', () => { state.page--; render(); window.scrollTo({top:0,behavior:'smooth'}); });
+$('nextBtn').addEventListener('click', () => { state.page++; render(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+/* ── Search (debounced) ───────────────────────────── */
+let searchTimer = null;
+$('searchInput').addEventListener('input', (ev) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.search = ev.target.value;
+    state.page = 1;
+    applyFilters();
+  }, 180);
+});
+
+/* ── Go ────────────────────────────────────────────── */
+load();
+</script>
+</body>
+</html>
